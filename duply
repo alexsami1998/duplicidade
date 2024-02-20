@@ -1,0 +1,32 @@
+from PIL import ImageGrab
+import numpy as np
+import pyautogui
+import time
+
+def captura_area_notificacao():
+    # Captura a área específica definida pelas coordenadas
+    return ImageGrab.grab(bbox=(1169, 89, 1173, 195))
+
+def analisa_cor_prevalente(imagem, cor_limiar):
+    pixels = np.array(imagem)
+    preto = 0
+    total = pixels.shape[0] * pixels.shape[1]
+    
+    for pixel in pixels.reshape(-1, pixels.shape[2]):
+        # Verifica se o pixel é predominantemente preto
+        if pixel[0] < cor_limiar and pixel[1] < cor_limiar and pixel[2] < cor_limiar:
+            preto += 1
+
+    # Retorna True se a maioria dos pixels forem pretos
+    return preto / total > 0.5
+
+def fechar_aba_navegador():
+    # Simula o atalho de fechar a aba
+    pyautogui.hotkey('ctrl', 'w')
+
+while True:
+    imagem = captura_area_notificacao()
+    if analisa_cor_prevalente(imagem, cor_limiar=100):  # Define o limiar de cor
+        fechar_aba_navegador()
+    
+    time.sleep(5)  # Verifica a cada 5 segundos
