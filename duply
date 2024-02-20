@@ -1,32 +1,40 @@
-from PIL import ImageGrab
-import numpy as np
+import pygetwindow as gw
 import pyautogui
 import time
 
-def captura_area_notificacao():
-    # Captura a área específica definida pelas coordenadas
-    return ImageGrab.grab(bbox=(1169, 89, 1173, 195))
+def mouse_sobre_coordenadas(tolerancia=10):
+    coordenadas = [
+        (726, 350), (739, 351), (743, 352), (776, 353), (802, 349), (814, 350),
+        (820, 350), (845, 350), (868, 352), (882, 348), (901, 354), (922, 356),
+        (952, 356), (983, 359), (1018, 360), (1053, 358), (1074, 355), (1100, 356),
+        (1125, 354), (1165, 347), (1196, 351), (1225, 353), (1253, 352),
+        (1270, 352), (1285, 352), (1309, 367)
+    ]
+    x_atual, y_atual = pyautogui.position()
+    for x, y in coordenadas:
+        if x - tolerancia <= x_atual <= x + tolerancia and y - tolerancia <= y_atual <= y + tolerancia:
+            return True
+    return False
 
-def analisa_cor_prevalente(imagem, cor_limiar):
-    pixels = np.array(imagem)
-    preto = 0
-    total = pixels.shape[0] * pixels.shape[1]
-    
-    for pixel in pixels.reshape(-1, pixels.shape[2]):
-        # Verifica se o pixel é predominantemente preto
-        if pixel[0] < cor_limiar and pixel[1] < cor_limiar and pixel[2] < cor_limiar:
-            preto += 1
+def fechar_aba_navegador(titulo_janela):
+    try:
+        janela = gw.getWindowsWithTitle(titulo_janela)[0]
+        if janela:
+            janela.activate()
+            time.sleep(1)  # Dá tempo para a janela se tornar ativa
+            pyautogui.hotkey('ctrl', 'w')
+    except Exception as e:
+        print(f"Erro ao fechar a aba: {e}")
 
-    # Retorna True se a maioria dos pixels forem pretos
-    return preto / total > 0.5
-
-def fechar_aba_navegador():
-    # Simula o atalho de fechar a aba
-    pyautogui.hotkey('ctrl', 'w')
+titulo_janela = "Pontomais"
 
 while True:
-    imagem = captura_area_notificacao()
-    if analisa_cor_prevalente(imagem, cor_limiar=100):  # Define o limiar de cor
-        fechar_aba_navegador()
-    
-    time.sleep(5)  # Verifica a cada 5 segundos
+    if gw.getWindowsWithTitle(titulo_janela):
+        if mouse_sobre_coordenadas():
+            time.sleep(35)  # Espera 2 segundos após o mouse passar pela coordenada
+            fechar_aba_navegador(titulo_janela)
+            # Após fechar, aguarda um período antes de continuar para evitar fechamentos repetidos
+            time.sleep(5)
+    else:
+        print(f"Janela '{titulo_janela}' não encontrada.")
+    time.sleep(1)  # Intervalo de tempo antes de reiniciar a verificação
